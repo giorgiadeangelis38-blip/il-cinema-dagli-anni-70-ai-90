@@ -140,7 +140,7 @@ const posterUrls = {
   'Being John Malkovich':'https://upload.wikimedia.org/wikipedia/en/5/55/Being_John_Malkovich_poster.jpg',
   'Beverly Hills Cop':'https://upload.wikimedia.org/wikipedia/en/a/a2/Beverly_Hills_Cop.jpg',
   'Blade Runner':'https://upload.wikimedia.org/wikipedia/en/9/9f/Blade_Runner_%281982_poster%29.png',
-  'Blue Velvet':'https://upload.wikimedia.org/wikipedia/en/f/fd/Blue_Velvet_%281986%29.png',
+  'Blue Velvet':'https://upload.wikimedia.org/wikipedia/en/f/fd/Blue_Velvet_%281986_poster%29.png',
   'Braveheart':'https://upload.wikimedia.org/wikipedia/en/e/e1/Braveheart_film_poster.png',
   'Carrie':'https://upload.wikimedia.org/wikipedia/en/d/d7/Carrieposter.jpg',
   'Chinatown':'https://upload.wikimedia.org/wikipedia/en/3/38/Chinatownposter1.jpg',
@@ -257,17 +257,27 @@ function posterFallback(movie) {
 const decadeLabel = d => `Anni '${String(d).slice(2)}`;
 d3.select('#film-gallery').append('div').attr('class','film-gallery-track').selectAll('article').data([...movies, ...movies]).join('article').attr('class','film-card').html(m=>`<img src="${posterUrl(m)}" alt="Copertina di ${m.title}" loading="lazy"><div class="film-card-copy"><h3>${m.title}</h3><p>${m.year} · ${m.director}</p></div>`);
 
-// BASE SYNTH-POP / DISCO-FUNK ANNI '80 (114 BPM - Stile Billie Jean / Take On Me / Colonne sonore '80)
 const musicButton = document.querySelector('#music-toggle');
+let navMusicButton = null;
 let audioCtx = null;
 let grooveTimer = null;
 let musicOn = false;
 let noiseBuffer = null;
 
-function setMusicButton(label, playing) {
-  musicButton.textContent = label;
-  musicButton.classList.toggle('playing', playing);
-  musicButton.setAttribute('aria-pressed', String(playing));
+function syncMusicUI(playing) {
+  if (musicButton) {
+    musicButton.textContent = playing
+      ? '■ Ferma sottofondo musicale'
+      : '♫ Ascolta sottofondo musicale';
+    musicButton.classList.toggle('playing', playing);
+    musicButton.setAttribute('aria-pressed', String(playing));
+  }
+  if (navMusicButton) {
+    navMusicButton.classList.toggle('playing', playing);
+    navMusicButton.setAttribute('aria-pressed', String(playing));
+    navMusicButton.setAttribute('aria-label', playing ? 'Spegni sottofondo musicale' : 'Accendi sottofondo musicale');
+    navMusicButton.title = playing ? 'Spegni sottofondo musicale' : 'Accendi sottofondo musicale';
+  }
 }
 
 function getNoiseBuffer(ctx) {
@@ -280,7 +290,6 @@ function getNoiseBuffer(ctx) {
   return buffer;
 }
 
-// 1. Cassa Disco/Pop dritta in quattro (Four-on-the-floor)
 function play80sKick(ctx, t) {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -295,7 +304,6 @@ function play80sKick(ctx, t) {
   osc.stop(t + 0.25);
 }
 
-// 2. Rullante anni '80 con coda gated brillante
 function play80sSnare(ctx, t) {
   const osc = ctx.createOscillator();
   const oscGain = ctx.createGain();
@@ -326,7 +334,6 @@ function play80sSnare(ctx, t) {
   noise.stop(t + 0.23);
 }
 
-// 3. Hi-Hat Disco aperto sul levare (stile Stayin' Alive / Dance '80)
 function play80sHat(ctx, t, open) {
   const noise = ctx.createBufferSource();
   noise.buffer = getNoiseBuffer(ctx);
@@ -343,7 +350,6 @@ function play80sHat(ctx, t, open) {
   noise.stop(t + (open ? 0.17 : 0.05));
 }
 
-// 4. Basso Synth analogico in ottavi (stile Giorgio Moroder / Billie Jean)
 function play80sBass(ctx, t, freq, dur) {
   const osc = ctx.createOscillator();
   const filter = ctx.createBiquadFilter();
@@ -366,7 +372,6 @@ function play80sBass(ctx, t, freq, dur) {
   osc.stop(t + dur + 0.02);
 }
 
-// 5. Poly-Synth / Brass anni '80 (stile Juno-106 / Yamaha DX7)
 function play80sSynth(ctx, t, freqs, dur) {
   freqs.forEach(f => {
     const osc1 = ctx.createOscillator();
@@ -377,7 +382,7 @@ function play80sSynth(ctx, t, freqs, dur) {
     osc1.type = 'sawtooth';
     osc2.type = 'triangle';
     osc1.frequency.setValueAtTime(f, t);
-    osc2.frequency.setValueAtTime(f * 1.004, t); // leggero detune analogico chorus
+    osc2.frequency.setValueAtTime(f * 1.004, t);
 
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(2200, t);
@@ -407,16 +412,15 @@ function start80sBackingTrack() {
     audioCtx.resume();
   }
 
-  // Giro armonico iconico anni '80 (Am -> F -> C -> G): solare, cinematografico, energico
   const bars = [
-    { bassLow: 110.00, bassHigh: 220.00, chord: [440.00, 523.25, 659.25] }, // La minore (Am)
-    { bassLow: 87.31,  bassHigh: 174.61, chord: [349.23, 440.00, 523.25] }, // Fa maggiore (F)
-    { bassLow: 130.81, bassHigh: 261.63, chord: [392.00, 523.25, 659.25] }, // Do maggiore (C)
-    { bassLow: 98.00,  bassHigh: 196.00, chord: [392.00, 493.88, 587.33] }  // Sol maggiore (G)
+    { bassLow: 110.00, bassHigh: 220.00, chord: [440.00, 523.25, 659.25] },
+    { bassLow: 87.31,  bassHigh: 174.61, chord: [349.23, 440.00, 523.25] },
+    { bassLow: 130.81, bassHigh: 261.63, chord: [392.00, 523.25, 659.25] },
+    { bassLow: 98.00,  bassHigh: 196.00, chord: [392.00, 493.88, 587.33] }
   ];
 
-  let step = 0; // 0..63
-  const stepMs = 132; // ~114 BPM (tempo classico pop/dance anni '80)
+  let step = 0;
+  const stepMs = 132;
 
   function tick() {
     if (!musicOn) return;
@@ -425,18 +429,15 @@ function start80sBackingTrack() {
     const s = step % 16;
     const current = bars[barIdx];
 
-    // Batteria Disco-Pop: cassa su ogni quarto (0, 4, 8, 12), rullante sul 2 e 4 (4, 12), hat aperto sul levare (2, 6, 10, 14)
     if (s % 4 === 0) play80sKick(audioCtx, t);
     if (s === 4 || s === 12) play80sSnare(audioCtx, t);
     if (s % 2 === 0) play80sHat(audioCtx, t, s % 4 === 2);
 
-    // Basso synth pulsante in ottavi alternati (basso/ottava sopra stile Moroder)
     if (s % 2 === 0) {
       const freq = (s % 4 === 0) ? current.bassLow : current.bassHigh;
       play80sBass(audioCtx, t, freq, 0.22);
     }
 
-    // Accordi synth ritmici anni '80 (attacco sul 1 e spinta sincopata sul levare)
     if (s === 0) play80sSynth(audioCtx, t, current.chord, 0.75);
     if (s === 6) play80sSynth(audioCtx, t, current.chord, 0.45);
     if (s === 10) play80sSynth(audioCtx, t, current.chord, 0.65);
@@ -458,17 +459,21 @@ function stop80sBackingTrack() {
   }
 }
 
-musicButton.addEventListener('click', () => {
+function toggleMusic() {
   if (musicOn) {
     stop80sBackingTrack();
     musicOn = false;
-    setMusicButton('♫ Ascolta sottofondo musicale', false);
+    syncMusicUI(false);
   } else {
     start80sBackingTrack();
     musicOn = true;
-    setMusicButton('■ Ferma sottofondo musicale', true);
+    syncMusicUI(true);
   }
-});
+}
+
+if (musicButton) {
+  musicButton.addEventListener('click', toggleMusic);
+}
 
 const decadeData = d => movies.filter(m => m.decade === d);
 const totalBox = d3.sum(movies, m => m.boxOffice || 0);
@@ -496,40 +501,133 @@ d3.select('#film-strip').append('div').attr('class', 'film-strip-track')
 
 function chartSize(el, height) { const width = Math.max(300, el.parentElement.clientWidth - 20); return {width, height}; }
 function addAxesStyle(selection) { selection.selectAll('text').attr('fill','#a1a1aa').attr('font-size',11); selection.selectAll('line').attr('stroke','#333').attr('stroke-dasharray','3 3'); selection.select('.domain').attr('stroke','#555'); }
-function showTip(event, html) { tooltip.style('opacity',1).html(html).style('left',`${event.pageX+14}px`).style('top',`${event.pageY-28}px`); }
-function hideTip() { tooltip.style('opacity',0); }
+function moveTip(event) {
+  const pad = 14;
+  const tipNode = tooltip.node();
+  const rect = tipNode ? tipNode.getBoundingClientRect() : { width: 260, height: 80 };
+  let left = event.clientX + pad;
+  let top = event.clientY - rect.height - 10;
+  if (left + rect.width > window.innerWidth - 12) {
+    left = Math.max(12, event.clientX - rect.width - pad);
+  }
+  if (top < 12) {
+    top = Math.min(window.innerHeight - rect.height - 12, event.clientY + 18);
+  }
+  tooltip.style('left', `${left}px`).style('top', `${top}px`);
+}
+function showTip(event, html) {
+  tooltip.style('opacity', 1).html(html);
+  moveTip(event);
+}
+function hideTip() { tooltip.style('opacity', 0); }
+
 let selectedFilm = movies.find(m => m.title === 'Titanic') || movies[0];
-function renderFilmDetail(movie) {
+
+function ensureFilmDetailVisible() {
+  const detailEl = document.querySelector('#film-detail');
+  if (!detailEl) return;
+  const rect = detailEl.getBoundingClientRect();
+  const topSafe = 74;
+  const bottomSafe = window.innerHeight - 82;
+  const availableH = Math.max(120, bottomSafe - topSafe);
+
+  if (rect.height >= availableH) {
+    const targetTop = window.scrollY + rect.top - topSafe;
+    window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+    return;
+  }
+
+  if (rect.bottom > bottomSafe) {
+    const delta = rect.bottom - bottomSafe;
+    window.scrollTo({ top: Math.max(0, window.scrollY + delta), behavior: 'smooth' });
+  } else if (rect.top < topSafe) {
+    const delta = rect.top - topSafe;
+    window.scrollTo({ top: Math.max(0, window.scrollY + delta), behavior: 'smooth' });
+  }
+}
+
+function renderFilmDetail(movie, shouldScroll = false) {
   selectedFilm = movie;
   d3.select('#film-detail').html(`<img src="${posterUrl(movie)}" alt="Copertina di ${movie.title}"><div><div class="kicker">FILM SELEZIONATO · CLICCA UN PUNTO</div><h3>${movie.title}</h3><p>${movie.year} · ${movie.genres.join(', ')} · Regia di ${movie.director}</p><p>Incasso: <strong>${d3.format(',.1f')(movie.boxOffice || 0)}M</strong> · Voto IMDb: <strong>${movie.rating}</strong></p></div>`);
+  if (shouldScroll) {
+    requestAnimationFrame(() => ensureFilmDetailVisible());
+  }
 }
 
 function renderGenres() {
   const el = document.querySelector('#genre-chart');
+  if (!el) return;
   const width = Math.max(300, el.parentElement.clientWidth - 20);
-  const margin={top:12,right:48,bottom:40,left:120};
-  const genres = [...new Set(movies.map(m=>m.genres[0]))];
-  const rows = genres.map(genre => ({genre, ...Object.fromEntries([1970,1980,1990].map(d=>[d,decadeData(d).filter(m=>m.genres[0]===genre).length]))})).sort((a,b)=>d3.sum([1970,1980,1990],d=>b[d])-d3.sum([1970,1980,1990],d=>a[d]));
-  const height = rows.length*66 + margin.top + margin.bottom;
-  const iw=width-margin.left-margin.right, ih=height-margin.top-margin.bottom;
-  const svg=d3.select(el).attr('viewBox',`0 0 ${width} ${height}`); svg.selectAll('*').remove();
-  const g=svg.append('g').attr('transform',`translate(${margin.left},${margin.top})`);
-  const maxX = d3.max(rows, r=>d3.max([1970,1980,1990], k=>r[k])) || 1;
-  const x=d3.scaleLinear().domain([0,maxX]).range([0,iw]).nice();
-  const y=d3.scaleBand().domain(rows.map(r=>r.genre)).range([0,ih]).paddingInner(.3);
-  const yDec=d3.scaleBand().domain([1970,1980,1990]).range([0,y.bandwidth()]).padding(.15);
-  x.ticks(5).forEach(t=>g.append('line').attr('x1',x(t)).attr('x2',x(t)).attr('y1',0).attr('y2',ih).attr('stroke','#27272a').attr('stroke-dasharray','3 3'));
-  addAxesStyle(g.append('g').attr('transform',`translate(0,${ih})`).call(d3.axisBottom(x).ticks(5).tickFormat(d3.format('d'))));
-  g.append('g').call(d3.axisLeft(y).tickSize(0)).call(s=>s.select('.domain').remove()).call(s=>s.selectAll('text').attr('fill','#e4e4e7').attr('font-size',12));
-  rows.forEach((r,ri)=>{
+  const margin = { top: 12, right: 48, bottom: 40, left: 120 };
+  const genres = [...new Set(movies.map(m => m.genres[0]))];
+  const rows = genres
+    .map(genre => ({
+      genre,
+      ...Object.fromEntries([1970, 1980, 1990].map(d => [d, decadeData(d).filter(m => m.genres[0] === genre).length]))
+    }))
+    .sort((a, b) => d3.sum([1970, 1980, 1990], d => b[d]) - d3.sum([1970, 1980, 1990], d => a[d]));
+  const height = rows.length * 66 + margin.top + margin.bottom;
+  const iw = width - margin.left - margin.right;
+  const ih = height - margin.top - margin.bottom;
+  const svg = d3.select(el).attr('viewBox', `0 0 ${width} ${height}`);
+  svg.selectAll('*').remove();
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+  const maxX = d3.max(rows, r => d3.max([1970, 1980, 1990], k => r[k])) || 1;
+  const x = d3.scaleLinear().domain([0, maxX]).range([0, iw]).nice();
+  const y = d3.scaleBand().domain(rows.map(r => r.genre)).range([0, ih]).paddingInner(.3);
+  const yDec = d3.scaleBand().domain([1970, 1980, 1990]).range([0, y.bandwidth()]).padding(.15);
+
+  x.ticks(5).forEach(t =>
+    g.append('line')
+      .attr('x1', x(t)).attr('x2', x(t))
+      .attr('y1', 0).attr('y2', ih)
+      .attr('stroke', '#27272a')
+      .attr('stroke-dasharray', '3 3')
+  );
+
+  addAxesStyle(g.append('g').attr('transform', `translate(0,${ih})`).call(d3.axisBottom(x).ticks(5).tickFormat(d3.format('d'))));
+  g.append('g').call(d3.axisLeft(y).tickSize(0))
+    .call(s => s.select('.domain').remove())
+    .call(s => s.selectAll('text').attr('fill', '#e4e4e7').attr('font-size', 12));
+
+  rows.forEach((r, ri) => {
     const rowY = y(r.genre) ?? 0;
-    [1970,1980,1990].forEach(dec=>{
-      const v=r[dec]; const by=rowY+(yDec(dec)??0); const bh=yDec.bandwidth();
-      const titles = decadeData(dec).filter(m=>m.genres[0]===r.genre).map(m=>m.title).sort((a,b)=>a.localeCompare(b));
-      g.append('rect').attr('x',0).attr('y',by).attr('width',0).attr('height',bh).attr('rx',3).attr('fill',colors[dec]).style('cursor','pointer')
-        .on('mouseenter',e=>showTip(e,`<b>${r.genre}</b> · ${decadeLabel(dec)} · ${v} film<br>${titles.join(' · ')}`)).on('mousemove',e=>showTip(e,tooltip.html())).on('mouseleave',hideTip)
-        .transition().duration(700).delay(ri*60).attr('width',x(v));
-      if(v>0) g.append('text').attr('x',x(v)+6).attr('y',by+bh/2).attr('dy','0.35em').attr('fill',colors[dec]).attr('font-size',11).attr('font-weight',600).text(v);
+    [1970, 1980, 1990].forEach(dec => {
+      const v = r[dec];
+      const by = rowY + (yDec(dec) ?? 0);
+      const bh = yDec.bandwidth();
+      const titles = decadeData(dec)
+        .filter(m => m.genres[0] === r.genre)
+        .map(m => m.title)
+        .sort((a, b) => a.localeCompare(b));
+
+      const tipHtml = v > 0
+        ? `<b>${r.genre}</b> · ${decadeLabel(dec)} · ${v} film<br>${titles.join(' · ')}`
+        : `<b>${r.genre}</b> · ${decadeLabel(dec)} · Nessun film`;
+
+      g.append('rect')
+        .attr('x', 0)
+        .attr('y', by)
+        .attr('width', 0)
+        .attr('height', bh)
+        .attr('rx', 3)
+        .attr('fill', colors[dec])
+        .style('cursor', 'default')
+        .on('mouseenter', e => showTip(e, tipHtml))
+        .on('mousemove', e => moveTip(e))
+        .on('mouseleave', hideTip)
+        .transition().duration(700).delay(ri * 60).attr('width', x(v));
+
+      if (v > 0) {
+        g.append('text')
+          .attr('x', x(v) + 6)
+          .attr('y', by + bh / 2)
+          .attr('dy', '0.35em')
+          .attr('fill', colors[dec])
+          .attr('font-size', 11)
+          .attr('font-weight', 600)
+          .text(v);
+      }
     });
   });
 }
@@ -540,10 +638,10 @@ function renderBoxOffice() {
   const el=document.querySelector('#boxoffice-chart');const {width,height}=chartSize(el,440);const margin={top:20,right:20,bottom:55,left:77};const iw=width-margin.left-margin.right,ih=height-margin.top-margin.bottom;const data=movies.filter(m=>m.boxOffice!=null);
   const svg=d3.select(el).attr('viewBox',`0 0 ${width} ${height}`).attr('height',height*el.parentElement.clientWidth/width||height);svg.selectAll('*').remove();const g=svg.append('g').attr('transform',`translate(${margin.left},${margin.top})`);const x=d3.scaleLinear().domain([1969,2000]).range([0,iw]);const y=d3.scaleLog().domain([3,d3.max(movies,m=>m.boxOffice)]).range([ih,0]);
   addAxesStyle(g.append('g').call(d3.axisLeft(y).tickValues([3,10,30,100,300,1000,3000]).tickFormat(d=>(d>=1000?`${d/1000}B`:`${d}M`)).tickSize(-iw)));addAxesStyle(g.append('g').attr('transform',`translate(0,${ih})`).call(d3.axisBottom(x).ticks(8).tickFormat(d3.format('d'))));g.append('text').attr('x',iw/2).attr('y',ih+43).attr('text-anchor','middle').attr('fill','#71717a').attr('font-size',12).text('Anno di uscita');g.append('text').attr('transform','rotate(-90)').attr('x',-ih/2).attr('y',-60).attr('text-anchor','middle').attr('fill','#71717a').attr('font-size',12).text('Incasso al botteghino (milioni $, scala log)');
-  const radius=d3.scaleSqrt().domain([5,10]).range([4,11]);g.selectAll('circle').data(data).join('circle').attr('cx',m=>x(m.year)).attr('cy',m=>y(m.boxOffice)).attr('r',m=>radius(m.rating)).attr('fill',m=>colors[m.decade]).attr('opacity',.8).attr('stroke','#080808').style('cursor','pointer').on('click',function(e,m){renderFilmDetail(m);this.scrollIntoView({behavior:'smooth',block:'nearest'})}).on('mouseenter',(e,m)=>showTip(e,`<div class="film-tip"><img class="tooltip-poster" src="${posterUrl(m)}" alt="Copertina di ${m.title}"><div><b>${m.title}</b><br><span>${m.year} · ${m.genres.join(', ')}</span><br>Regia: ${m.director}<br>Incasso: ${d3.format(',.1f')(m.boxOffice)}M<br>Voto IMDb: ${m.rating}</div></div>`)).on('mousemove',e=>showTip(e,tooltip.html())).on('mouseleave',hideTip);
+  const radius=d3.scaleSqrt().domain([5,10]).range([4,11]);g.selectAll('circle').data(data).join('circle').attr('cx',m=>x(m.year)).attr('cy',m=>y(m.boxOffice)).attr('r',m=>radius(m.rating)).attr('fill',m=>colors[m.decade]).attr('opacity',.8).attr('stroke','#080808').style('cursor','pointer').on('click',function(e,m){renderFilmDetail(m,true);}).on('mouseenter',(e,m)=>showTip(e,`<div class="film-tip"><img class="tooltip-poster" src="${posterUrl(m)}" alt="Copertina di ${m.title}"><div><b>${m.title}</b><br><span>${m.year} · ${m.genres.join(', ')}</span><br>Regia: ${m.director}<br>Incasso: ${d3.format(',.1f')(m.boxOffice)}M<br>Voto IMDb: ${m.rating}</div></div>`)).on('mousemove',e=>moveTip(e)).on('mouseleave',hideTip);
 }
 renderBoxOffice();
-renderFilmDetail(selectedFilm);
+renderFilmDetail(selectedFilm, false);
 
 let directorObserver=null;
 function renderDirector(){
@@ -588,7 +686,7 @@ function renderDirector(){
         svg.selectAll('g.row').style('opacity',.35); g.style('opacity',1);
         showTip(e,`<b>${row.name}</b><br>${row.total} film nel dataset · media IMDb ${row.avgRating.toFixed(2)}<br>Incasso medio: ${d3.format(',.0f')(row.avgBox)}M<br>${DECADES.map(d=>`'${String(d).slice(2)}: ${row.perDecade[d]}`).join(' · ')}`);
       })
-      .on('mousemove',e=>showTip(e,tooltip.html()))
+      .on('mousemove',e=>moveTip(e))
       .on('mouseleave',()=>{ svg.selectAll('g.row').style('opacity',1); hideTip(); });
   });
   directorObserver=new IntersectionObserver(entries=>{
@@ -620,7 +718,7 @@ function renderRatings(){
       .attr('width',b=>Math.max(0,xRating(b.x1)-xRating(b.x0)-2))
       .attr('height',b=>ih-y(b.length)).attr('fill',colors[dec]).attr('rx',2)
       .on('mouseenter',(e,b)=>showTip(e,`${decadeLabel(dec)}<br><b>${b.x0.toFixed(1)}–${b.x1.toFixed(1)}</b> · ${b.length} film`))
-      .on('mousemove',e=>showTip(e,tooltip.html())).on('mouseleave',hideTip);
+      .on('mousemove',e=>moveTip(e)).on('mouseleave',hideTip);
     const mean=d3.mean(decadeData(dec),m=>m.rating);
     g.append('text').attr('x',x0(String(dec))+x0.bandwidth()/2).attr('y',ih+30).attr('text-anchor','middle').attr('fill','#a1a1aa').attr('font-size',12).attr('font-weight',600).text(`Voto medio ${mean.toFixed(1)}`);
   });
@@ -632,13 +730,19 @@ window.addEventListener('resize',()=>{renderGenres();renderBoxOffice();renderDir
 const sectionNav=document.createElement('nav');
 sectionNav.className='section-nav';
 sectionNav.setAttribute('aria-label','Navigazione sezioni');
-sectionNav.innerHTML=`<button type="button" data-action="prev" aria-label="Sezione precedente">←</button><button type="button" data-action="top" aria-label="Torna su">Torna su</button><button type="button" data-action="next" aria-label="Sezione successiva">→</button>`;
+sectionNav.innerHTML=`<button type="button" data-action="prev" aria-label="Sezione precedente">←</button><button type="button" data-action="top" aria-label="Torna su">Torna su</button><button type="button" data-action="music" class="nav-music" aria-label="Accendi sottofondo musicale" aria-pressed="false" title="Accendi sottofondo musicale">♫</button><button type="button" data-action="next" aria-label="Sezione successiva">→</button>`;
 document.body.appendChild(sectionNav);
+navMusicButton = sectionNav.querySelector('[data-action="music"]');
 let currentSection=0;
 let isAutoScrolling=false;
 let scrollUnlockTimer=null;
 function syncCurrentSection(){
   if(isAutoScrolling) return;
+  const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+  if(nearBottom){
+    currentSection = SECTION_IDS.length - 1;
+    return;
+  }
   const triggerY=window.innerHeight*0.4;
   let active=0;
   SECTION_IDS.forEach((id,idx)=>{
@@ -650,6 +754,10 @@ function syncCurrentSection(){
 window.addEventListener('scroll',syncCurrentSection,{passive:true});
 sectionNav.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
   const action=b.dataset.action;
+  if(action==='music'){
+    toggleMusic();
+    return;
+  }
   if(action==='top'){
     currentSection=0;
     isAutoScrolling=true;
