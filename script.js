@@ -267,16 +267,16 @@ let noiseBuffer = null;
 function syncMusicUI(playing) {
   if (musicButton) {
     musicButton.textContent = playing
-      ? '■ Ferma sottofondo musicale'
-      : '♫ Ascolta sottofondo musicale';
+      ? '■ Disattiva musica'
+      : '♫ Attiva musica';
     musicButton.classList.toggle('playing', playing);
     musicButton.setAttribute('aria-pressed', String(playing));
   }
   if (navMusicButton) {
     navMusicButton.classList.toggle('playing', playing);
     navMusicButton.setAttribute('aria-pressed', String(playing));
-    navMusicButton.setAttribute('aria-label', playing ? 'Spegni sottofondo musicale' : 'Accendi sottofondo musicale');
-    navMusicButton.title = playing ? 'Spegni sottofondo musicale' : 'Accendi sottofondo musicale';
+    navMusicButton.setAttribute('aria-label', playing ? 'Disattiva musica' : 'Attiva musica');
+    navMusicButton.title = playing ? 'Disattiva musica' : 'Attiva musica';
   }
 }
 
